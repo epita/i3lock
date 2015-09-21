@@ -17,6 +17,7 @@
 #include <cairo/cairo-xcb.h>
 #include <unistd.h>
 #include <time.h>
+#include <pwd.h>
 
 #include "i3lock.h"
 #include "xcb.h"
@@ -93,6 +94,12 @@ static xcb_visualtype_t *vistype;
  * indicator. */
 unlock_state_t unlock_state;
 auth_state_t auth_state;
+
+static char *get_login(void) {
+    uid_t uid = getuid();
+    struct passwd *pwd = getpwuid(uid);
+    return pwd ? pwd->pw_name : NULL;
+}
 
 /*
  * Draws global image with fill color onto a pixmap with the given
@@ -223,7 +230,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         /* Failed attempts (below) */
         if (failed_attempts == 0) {
-            text = getlogin();
+            text = get_login();
         } else if (failed_attempts == 1) {
             text = "1 failed attempt";
         } else {
@@ -250,7 +257,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             if (failed_attempts > 1)
                 free(text);
 
-            text = getlogin();
+            text = get_login();
 
             cairo_text_extents(ctx, text, &extents);
             x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
