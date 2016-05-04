@@ -309,7 +309,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_move_to(ctx, x, y);
         cairo_show_text(ctx, text);
         cairo_close_path(ctx);
-
+        cairo_move_to(ctx, BUTTON_CENTER + BUTTON_RADIUS - 5, y - time_extents.y_bearing);
         //free(text);
 
         /* Draw an inner seperator line. */
