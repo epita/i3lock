@@ -1313,6 +1313,7 @@ int main(int argc, char *argv[]) {
      * file descriptor becomes readable). */
 
     ev_invoke(main_loop, xcb_check, 0);
+    start_time_redraw_tick(main_loop);
     ev_loop(main_loop, 0);
 
 #ifndef __OpenBSD__

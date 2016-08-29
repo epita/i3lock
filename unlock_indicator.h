@@ -25,5 +25,6 @@ void free_bg_pixmap(void);
 void draw_image(xcb_pixmap_t bg_pixmap, uint32_t* resolution);
 void redraw_screen(void);
 void clear_indicator(void);
+void start_time_redraw_tick(struct ev_loop* main_loop);
 
 #endif
