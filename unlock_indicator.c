@@ -167,7 +167,11 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         /* Display some useful information. */
         /* Time (centered) */
-        char *text = malloc(INFO_MAXLENGTH);
+        char buf[INFO_MAXLENGTH];
+        memset(buf, 0, sizeof(buf));
+
+        char *text = buf;
+
         time_t curtime = time(NULL);
         struct tm *tm = localtime(&curtime);
 
@@ -255,8 +259,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_show_text(ctx, text);
         cairo_close_path(ctx);
 
-        free(text);
-
         /* Failed attempts (below) */
         if (failed_attempts == 0) {
             text = get_login();
@@ -283,9 +285,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         if (failed_attempts >= 1)
         {
-            if (failed_attempts > 1)
-                free(text);
-
             text = get_login();
 
             cairo_text_extents(ctx, text, &extents);
@@ -298,9 +297,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
 
         /* Lock time (above) */
-        //text = malloc(INFO_MAXLENGTH);
         text = "Locked for";
-        //strftime(text, INFO_MAXLENGTH, "Locked since " INFO_LOCKTIME_FORMAT ".", lock_time);
 
         cairo_text_extents(ctx, text, &extents);
         x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
@@ -310,7 +307,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_show_text(ctx, text);
         cairo_close_path(ctx);
         cairo_move_to(ctx, BUTTON_CENTER + BUTTON_RADIUS - 5, y - time_extents.y_bearing);
-        //free(text);
 
         /* Draw an inner seperator line. */
         cairo_set_source_rgb(ctx, 0, 0, 0);
