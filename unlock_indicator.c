@@ -244,7 +244,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         } else if (failed_attempts == 1) {
             text = "1 failed attempt";
         } else {
-            snprintf(text, INFO_MAXLENGTH - 1, "%i failed attempts.", failed_attempts);
+            snprintf(text, INFO_MAXLENGTH - 1, "%i failed attempts", failed_attempts);
         }
 
         cairo_set_font_size(ctx, 14.0);
