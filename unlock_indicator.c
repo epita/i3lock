@@ -208,11 +208,11 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                 break;
             case STATE_AUTH_IDLE:
                 if (unlock_state == STATE_NOTHING_TO_DELETE) {
-                    cairo_set_source_rgb(ctx, 160.0 / 255, 160.0 / 255, 160.0 / 255);
+                    cairo_set_source_rgb(ctx, 125.0 / 255, 51.0 / 255, 0);
                     break;
                 }
 
-                cairo_set_source_rgb(ctx, 51.0 / 255, 125.0 / 255, 0);
+                cairo_set_source_rgb(ctx, 160.0 / 255, 160.0 / 255, 160.0 / 255);
                 break;
         }
         if (locked_time >= 60)
