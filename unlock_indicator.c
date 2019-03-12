@@ -151,8 +151,9 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
-    if (unlock_indicator &&
-        (unlock_state >= STATE_KEY_PRESSED || auth_state > STATE_AUTH_IDLE)) {
+    if (unlock_indicator) {
+        // We always want the circle to be displayed
+        //&&        (unlock_state >= STATE_KEY_PRESSED || auth_state > STATE_AUTH_IDLE)) {
         cairo_scale(ctx, scaling_factor, scaling_factor);
         /* Draw a (centered) circle with transparent background. */
         cairo_set_line_width(ctx, 10.0);
@@ -239,14 +240,40 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         double x, y;
         cairo_text_extents_t extents;
         cairo_set_font_size(ctx, 14.0);
-        /* Failed attempts (below) */
-        if (show_failed_attempts && failed_attempts > 0) {
-            if (failed_attempts == 1) {
-                text = "1 failed attempt";
-            } else {
-                snprintf(text, INFO_MAXLENGTH - 1, "%i failed attempts", failed_attempts);
-            }
 
+        int has_special_state = true;
+
+        switch (auth_state) {
+            case STATE_AUTH_VERIFY:
+                text = "Verifying...";
+                break;
+            case STATE_AUTH_LOCK:
+                text = "Locking...";
+                break;
+            case STATE_AUTH_WRONG:
+                text = "Wrong!";
+                break;
+            case STATE_I3LOCK_LOCK_FAILED:
+                text = "Lock failed!";
+                break;
+            default:
+                if (unlock_state == STATE_NOTHING_TO_DELETE) {
+                    text = "No input";
+                    break;
+                }
+                /* Failed attempts (below) */
+                if (show_failed_attempts && failed_attempts > 0) {
+                    if (failed_attempts == 1) {
+                        text = "1 failed attempt";
+                    } else {
+                        snprintf(text, INFO_MAXLENGTH - 1, "%i failed attempts", failed_attempts);
+                    }
+                    break;
+                }
+                has_special_state = false;
+                break;
+        }
+        if (has_special_state) {
             cairo_text_extents(ctx, text, &extents);
             x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
             y = time_y - extents.y_bearing + INFO_MARGIN;
@@ -260,7 +287,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         cairo_text_extents(ctx, text, &extents);
         x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
-        if (show_failed_attempts && failed_attempts > 0) {
+        if (has_special_state) {
             y = time_y - time_extents.y_bearing + INFO_MARGIN * 2;
         } else {
             y = time_y - extents.y_bearing + INFO_MARGIN;
