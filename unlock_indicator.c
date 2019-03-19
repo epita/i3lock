@@ -74,6 +74,9 @@ extern time_t lock_time;
 /* tick for timer */
 static struct ev_periodic *time_redraw_tick;
 
+/* Login */
+extern char *login;
+
 /*******************************************************************************
  * Variables defined in xcb.c.
  ******************************************************************************/
@@ -92,12 +95,6 @@ static xcb_visualtype_t *vistype;
  * indicator. */
 unlock_state_t unlock_state;
 auth_state_t auth_state;
-
-static char *get_login(void) {
-    uid_t uid = getuid();
-    struct passwd *pwd = getpwuid(uid);
-    return pwd ? pwd->pw_name : NULL;
-}
 
 /*
  * Draws global image with fill color onto a pixmap with the given
@@ -151,9 +148,8 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
+    // We always want the circle to be displayed
     if (unlock_indicator) {
-        // We always want the circle to be displayed
-        //&&        (unlock_state >= STATE_KEY_PRESSED || auth_state > STATE_AUTH_IDLE)) {
         cairo_scale(ctx, scaling_factor, scaling_factor);
         /* Draw a (centered) circle with transparent background. */
         cairo_set_line_width(ctx, 10.0);
@@ -283,19 +279,19 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_close_path(ctx);
         }
 
-        text = get_login();
-
-        cairo_text_extents(ctx, text, &extents);
-        x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
-        if (has_special_state) {
-            y = time_y - time_extents.y_bearing + INFO_MARGIN * 2;
-        } else {
-            y = time_y - extents.y_bearing + INFO_MARGIN;
+        if (login != NULL)
+        {
+            cairo_text_extents(ctx, login, &extents);
+            x = BUTTON_CENTER - ((extents.width / 2) + extents.x_bearing);
+            if (has_special_state) {
+                y = time_y - time_extents.y_bearing + INFO_MARGIN * 2;
+            } else {
+                y = time_y - extents.y_bearing + INFO_MARGIN;
+            }
+            cairo_move_to(ctx, x, y);
+            cairo_show_text(ctx, login);
+            cairo_close_path(ctx);
         }
-
-        cairo_move_to(ctx, x, y);
-        cairo_show_text(ctx, text);
-        cairo_close_path(ctx);
 
         /* Lock time (above) */
         text = "Locked for";

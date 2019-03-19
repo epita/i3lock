@@ -98,6 +98,11 @@ bool ignore_empty_password = false;
 bool skip_repeated_empty_password = false;
 
 time_t lock_time;
+
+/* Buf for the login*/
+char login_buf[64];
+char *login = login_buf;
+
 /* isutf, u8_dec © 2005 Jeff Bezanson, public domain */
 #define isutf(c) (((c)&0xC0) != 0x80)
 
@@ -107,6 +112,16 @@ time_t lock_time;
  */
 static void u8_dec(char *s, int *i) {
     (void)(isutf(s[--(*i)]) || isutf(s[--(*i)]) || isutf(s[--(*i)]) || --(*i));
+}
+
+/*
+ * Get the login of the user in order to display it while drawing the screen
+ *
+ */
+static char *get_login(void) {
+    uid_t uid = getuid();
+    struct passwd *pwd = getpwuid(uid);
+    return pwd ? pwd->pw_name : NULL;
 }
 
 /*
@@ -1195,6 +1210,7 @@ int main(int argc, char *argv[]) {
         locale = "C";
     }
 
+
     load_compose_table(locale);
 
     screen = xcb_setup_roots_iterator(xcb_get_setup(conn)).data;
@@ -1278,6 +1294,9 @@ int main(int argc, char *argv[]) {
      * keyboard. */
     (void)load_keymap();
 
+    /* Fill the buffer with the user login */
+    login = get_login();
+
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
     if (main_loop == NULL)
@@ -1299,6 +1318,8 @@ int main(int argc, char *argv[]) {
 
     ev_prepare_init(xcb_prepare, xcb_prepare_cb);
     ev_prepare_start(main_loop, xcb_prepare);
+
+
 
     redraw_screen();
     unlock_state = STATE_KEY_PRESSED;
