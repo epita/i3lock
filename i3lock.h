@@ -12,4 +12,7 @@
         }                                                          \
     } while (0)
 
+/* This time must be in minutes */
+#define AUTHORIZED_LOCK_TIME 60
+
 #endif

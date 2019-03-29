@@ -47,6 +47,10 @@
 #include "randr.h"
 #include "dpi.h"
 
+/* #ifdef LOGOUT_KEYBIND */
+#include "sd-bus.h"
+/* #endif */
+
 #define TSTAMP_N_SECS(n) (n * 1.0)
 #define TSTAMP_N_MINS(n) (60 * TSTAMP_N_SECS(n))
 #define START_TIMER(timer_obj, timeout, callback) \
@@ -437,6 +441,19 @@ static void handle_key_press(xcb_key_press_event_t *event) {
     if (!composed) {
         n = xkb_keysym_to_utf8(ksym, buffer, sizeof(buffer));
     }
+
+/* #ifdef LOGOUT_KEYBIND */
+    switch (ksym) {
+        case XKB_KEY_c:
+            if (ctrl) {
+                time_t curtime = time(NULL);
+                time_t locked_time = difftime(curtime, lock_time) / 60;
+                if (locked_time >= AUTHORIZED_LOCK_TIME)
+                    terminate_current_session();
+            }
+            break;
+    }
+/* #endif */
 
     switch (ksym) {
         case XKB_KEY_j:
