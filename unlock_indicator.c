@@ -148,6 +148,10 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
+    /* Compute the locked_time */
+    time_t curtime = time(NULL);
+    time_t locked_time = difftime(curtime, lock_time) / 60;
+
     // We always want the circle to be displayed
     if (unlock_indicator) {
         cairo_scale(ctx, scaling_factor, scaling_factor);
@@ -166,9 +170,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         memset(buf, 0, sizeof(buf));
 
         char *text = buf;
-
-        time_t curtime = time(NULL);
-        time_t locked_time = difftime(curtime, lock_time) / 60;
 
         /* Use the appropriate color for the different PAM states
          * (currently verifying, wrong password, or default) */
@@ -361,6 +362,60 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_stroke(ctx);
         }
     }
+
+/* #ifdef LOGOUT_KEYBIND */
+    if (locked_time >= AUTHORIZED_LOCK_TIME) {
+        int h = 80;
+        int w = 350;
+        int h_scaled = ceil(scaling_factor * h);
+        int w_scaled = ceil(scaling_factor * w);
+        cairo_surface_t *output_indicator = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w_scaled, h_scaled);
+        cairo_t *ctx_indicator = cairo_create(output_indicator);
+
+        /* Bakcground */
+        cairo_set_source_rgb(ctx_indicator, 125.0 / 255, 51.0 / 255, 0);
+        cairo_set_line_width(ctx_indicator, 1);
+        cairo_rectangle(ctx_indicator, 0, 0, w, h);
+        cairo_stroke_preserve(ctx_indicator);
+        cairo_fill(ctx_indicator);
+
+        /* Text */
+        cairo_set_source_rgb(ctx_indicator, 0, 0, 0);
+        char *text = "Ctrl + C to logout";
+
+        cairo_text_extents_t extents;
+        cairo_set_font_size(ctx_indicator, 32.0);
+
+        cairo_text_extents(ctx_indicator, text, &extents);
+        int x = w / 2 - ((extents.width / 2) + extents.x_bearing);
+        int y = h / 2 - ((extents.height / 2) + extents.y_bearing);
+
+        cairo_move_to(ctx_indicator, x, y);
+        cairo_show_text(ctx_indicator, text);
+        cairo_close_path(ctx_indicator);
+        if (xr_screens > 0) {
+            /* Composite the unlock indicator in the middle of each screen. */
+            for (int screen = 0; screen < xr_screens; screen++) {
+                int x = xr_resolutions[screen].x + (xr_resolutions[screen].width / 2) - (w_scaled / 2);
+                int y = xr_resolutions[screen].y + (xr_resolutions[screen].height) - h_scaled - 50;
+                cairo_set_source_surface(xcb_ctx, output_indicator, x, y);
+                cairo_rectangle(xcb_ctx, x, y, w_scaled, h_scaled);
+                cairo_fill(xcb_ctx);
+            }
+        } else {
+        /* We have no information about the screen sizes/positions, so we just
+         * place the unlock indicator in the middle of the X root window and
+         * hope for the best. */
+            int x = (last_resolution[0] / 2) - (w_scaled / 2);
+            int y = last_resolution[1] - h_scaled - 50 ;
+            cairo_set_source_surface(xcb_ctx, output_indicator, x, y);
+            cairo_rectangle(xcb_ctx, x, y, w_scaled, h_scaled);
+            cairo_fill(xcb_ctx);
+        }
+    cairo_surface_destroy(output_indicator);
+    cairo_destroy(ctx_indicator);
+    }
+/* #endif */
 
     if (xr_screens > 0) {
         /* Composite the unlock indicator in the middle of each screen. */
