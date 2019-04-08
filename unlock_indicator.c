@@ -381,7 +381,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         int x = w / 2 - ((extents.width / 2) + extents.x_bearing);
         int y = h / 2 - ((extents.height / 2) + extents.y_bearing);
 
-        cairo_set_source_rgb(ctx_modifier, 125.0 / 255, 51.0 / 255, 0);
+        cairo_set_source_rgb(ctx_modifier, 250.0 / 255, 0, 0);
         cairo_move_to(ctx_modifier, x, y);
         cairo_show_text(ctx_modifier, modifier_string);
         cairo_close_path(ctx_modifier);
@@ -405,7 +405,8 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_rectangle(xcb_ctx, x, y, w_scaled, h_scaled);
             cairo_fill(xcb_ctx);
         }
-
+    cairo_surface_destroy(output_modifier);
+    cairo_destroy(ctx_modifier);
     }
 
 /* #ifdef LOGOUT_KEYBIND */
@@ -419,13 +420,13 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_scale(ctx_indicator, scaling_factor, scaling_factor);
 
         /* Bakcground */
-        cairo_set_source_rgb(ctx_indicator, 125.0 / 255, 51.0 / 255, 0);
+        cairo_set_source_rgba(ctx_indicator, 250.0 / 255, 0, 0, 0.75);
         cairo_rectangle(ctx_indicator, 0, 0, w, h);
         cairo_stroke_preserve(ctx_indicator);
         cairo_fill(ctx_indicator);
 
         /* Text */
-        cairo_set_source_rgb(ctx_indicator, 0, 0, 0);
+        cairo_set_source_rgb(ctx_indicator, 1, 1, 1);
         char *text = "Ctrl + C to logout";
 
         cairo_text_extents_t extents;
