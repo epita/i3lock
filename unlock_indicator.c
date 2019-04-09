@@ -363,6 +363,26 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         }
     }
 
+    if (xr_screens > 0) {
+        /* Composite the unlock indicator in the middle of each screen. */
+        for (int screen = 0; screen < xr_screens; screen++) {
+            int x = (xr_resolutions[screen].x + ((xr_resolutions[screen].width / 2) - (button_diameter_physical / 2)));
+            int y = (xr_resolutions[screen].y + ((xr_resolutions[screen].height / 2) - (button_diameter_physical / 2)));
+            cairo_set_source_surface(xcb_ctx, output, x, y);
+            cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
+            cairo_fill(xcb_ctx);
+        }
+    } else {
+        /* We have no information about the screen sizes/positions, so we just
+         * place the unlock indicator in the middle of the X root window and
+         * hope for the best. */
+        int x = (last_resolution[0] / 2) - (button_diameter_physical / 2);
+        int y = (last_resolution[1] / 2) - (button_diameter_physical / 2);
+        cairo_set_source_surface(xcb_ctx, output, x, y);
+        cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
+        cairo_fill(xcb_ctx);
+    }
+
     /* Display current modifier */
     if (auth_state == STATE_AUTH_WRONG && (modifier_string != NULL)) {
         int h = 50;
@@ -373,7 +393,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_t *ctx_modifier = cairo_create(output_modifier);
         cairo_scale(ctx_modifier, scaling_factor, scaling_factor);
 
-        /* Bakcground */
         cairo_text_extents_t extents;
         cairo_set_font_size(ctx_modifier, 14.0);
 
@@ -387,7 +406,6 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
         cairo_close_path(ctx_modifier);
 
         if (xr_screens > 0) {
-            /* Composite the unlock indicator in the middle of each screen. */
             for (int screen = 0; screen < xr_screens; screen++) {
                 int x = xr_resolutions[screen].x + (xr_resolutions[screen].width / 2) - (w_scaled / 2);
                 int y = xr_resolutions[screen].y + (xr_resolutions[screen].height / 2) + h_scaled + 50 ;
@@ -396,23 +414,20 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                 cairo_fill(xcb_ctx);
             }
         } else {
-            /* We have no information about the screen sizes/positions, so we just
-             * place the unlock indicator in the middle of the X root window and
-             * hope for the best. */
             int x = (last_resolution[0] / 2) - (w_scaled / 2);
             int y = (last_resolution[1] / 2) + h_scaled + 100;
             cairo_set_source_surface(xcb_ctx, output_modifier, x, y);
             cairo_rectangle(xcb_ctx, x, y, w_scaled, h_scaled);
             cairo_fill(xcb_ctx);
         }
-    cairo_surface_destroy(output_modifier);
-    cairo_destroy(ctx_modifier);
+        cairo_surface_destroy(output_modifier);
+        cairo_destroy(ctx_modifier);
     }
 
 /* #ifdef LOGOUT_KEYBIND */
     if (locked_time >= AUTHORIZED_LOCK_TIME) {
         int h = 80;
-        int w = 350;
+        int w = 450;
         int h_scaled = ceil(scaling_factor * h);
         int w_scaled = ceil(scaling_factor * w);
         cairo_surface_t *output_indicator = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, w_scaled, h_scaled);
@@ -427,7 +442,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         /* Text */
         cairo_set_source_rgb(ctx_indicator, 1, 1, 1);
-        char *text = "Ctrl + C to logout";
+        char *text = "Mod + Shift + E to logout";
 
         cairo_text_extents_t extents;
         cairo_set_font_size(ctx_indicator, 32.0);
@@ -458,30 +473,10 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
             cairo_rectangle(xcb_ctx, x, y, w_scaled, h_scaled);
             cairo_fill(xcb_ctx);
         }
-    cairo_surface_destroy(output_indicator);
-    cairo_destroy(ctx_indicator);
+        cairo_surface_destroy(output_indicator);
+        cairo_destroy(ctx_indicator);
     }
 /* #endif */
-
-    if (xr_screens > 0) {
-        /* Composite the unlock indicator in the middle of each screen. */
-        for (int screen = 0; screen < xr_screens; screen++) {
-            int x = (xr_resolutions[screen].x + ((xr_resolutions[screen].width / 2) - (button_diameter_physical / 2)));
-            int y = (xr_resolutions[screen].y + ((xr_resolutions[screen].height / 2) - (button_diameter_physical / 2)));
-            cairo_set_source_surface(xcb_ctx, output, x, y);
-            cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
-            cairo_fill(xcb_ctx);
-        }
-    } else {
-        /* We have no information about the screen sizes/positions, so we just
-         * place the unlock indicator in the middle of the X root window and
-         * hope for the best. */
-        int x = (last_resolution[0] / 2) - (button_diameter_physical / 2);
-        int y = (last_resolution[1] / 2) - (button_diameter_physical / 2);
-        cairo_set_source_surface(xcb_ctx, output, x, y);
-        cairo_rectangle(xcb_ctx, x, y, button_diameter_physical, button_diameter_physical);
-        cairo_fill(xcb_ctx);
-    }
 
     cairo_surface_destroy(xcb_output);
     cairo_surface_destroy(output);

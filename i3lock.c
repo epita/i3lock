@@ -411,10 +411,12 @@ static void handle_key_press(xcb_key_press_event_t *event) {
     char buffer[128];
     int n;
     bool ctrl;
+    bool mod;
     bool composed = false;
 
     ksym = xkb_state_key_get_one_sym(xkb_state, event->detail);
     ctrl = xkb_state_mod_name_is_active(xkb_state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_DEPRESSED);
+    mod = xkb_state_mod_name_is_active(xkb_state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_DEPRESSED);
 
     /* The buffer will be null-terminated, so n >= 2 for 1 actual character. */
     memset(buffer, '\0', sizeof(buffer));
@@ -444,8 +446,8 @@ static void handle_key_press(xcb_key_press_event_t *event) {
 
 /* #ifdef LOGOUT_KEYBIND */
     switch (ksym) {
-        case XKB_KEY_c:
-            if (ctrl) {
+        case XKB_KEY_E:
+            if (mod) {
                 time_t curtime = time(NULL);
                 time_t locked_time = difftime(curtime, lock_time) / 60;
                 if (locked_time >= AUTHORIZED_LOCK_TIME)
