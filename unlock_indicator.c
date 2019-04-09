@@ -442,7 +442,7 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
 
         /* Text */
         cairo_set_source_rgb(ctx_indicator, 1, 1, 1);
-        char *text = "Mod + Shift + E to logout";
+        char *text = "Super + Shift + E to logout";
 
         cairo_text_extents_t extents;
         cairo_set_font_size(ctx_indicator, 32.0);
