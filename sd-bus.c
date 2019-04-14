@@ -57,11 +57,11 @@ int set_lock_status(unsigned lock_status) {
     r = sd_bus_call_method(bus,
             "org.cri.MachineState",                 /* service to contact */
             "/org/cri/MachineState",                /* object path */
-            "org.cri.MachineState",      /* interface name */
-            "Set_Lock_Status",                                  /* method name */
+            "org.cri.MachineState",                 /* interface name */
+            "Set_Lock_Status",                      /* method name */
             &error,                                 /* object to return error in */
             &m,                                     /* return message on success */
-            "u",                                  /* input signature */
+            "u",                                    /* input signature */
             lock_status
             );
     if (r < 0) {

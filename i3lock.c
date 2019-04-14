@@ -105,6 +105,7 @@ time_t lock_time;
 time_t curtime;
 time_t locked_time;
 static struct ev_periodic *time_status_tick;
+bool dbus_failed = false;
 
 /* Buf for the login*/
 char login_buf[64];
@@ -1043,12 +1044,15 @@ static void raise_loop(xcb_window_t window) {
 }
 
 static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
-    unsigned status = 2;
-    time_t curtime = time(NULL);
-    time_t locked_time = difftime(curtime, lock_time) / 60;
-    if (locked_time > AUTHORIZED_LOCK_TIME)
-        status = 3;
-    set_lock_status(status);
+    if (!dbus_failed)
+    {
+        unsigned status = 2;
+        time_t curtime = time(NULL);
+        time_t locked_time = difftime(curtime, lock_time) / 60;
+        if (locked_time > AUTHORIZED_LOCK_TIME)
+            status = 3;
+        dbus_failed = set_lock_status(status);
+    }
 }
 
 void start_time_status_tick(struct ev_loop* main_loop) {
@@ -1341,7 +1345,7 @@ int main(int argc, char *argv[]) {
     /* Fill the buffer with the user login */
     login = get_login();
 
-    set_lock_status(2);
+    dbus_failed = set_lock_status(2);
 
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
@@ -1402,6 +1406,7 @@ int main(int argc, char *argv[]) {
     set_focused_window(conn, screen->root, stolen_focus);
     xcb_aux_sync(conn);
 
-    set_lock_status(1);
+    if (!dbus_failed)
+        set_lock_status(1);
     return 0;
 }
