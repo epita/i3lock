@@ -111,6 +111,9 @@ bool dbus_failed = false;
 char login_buf[64];
 char *login = login_buf;
 
+/* Session Id */
+const char *session_id;
+
 /* isutf, u8_dec © 2005 Jeff Bezanson, public domain */
 #define isutf(c) (((c)&0xC0) != 0x80)
 
@@ -1051,7 +1054,7 @@ static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
         time_t locked_time = difftime(curtime, lock_time) / 60;
         if (locked_time > AUTHORIZED_LOCK_TIME)
             status = 3;
-        dbus_failed = set_lock_status(status);
+        dbus_failed = set_lock_status(session_id, status);
     }
 }
 
@@ -1345,7 +1348,11 @@ int main(int argc, char *argv[]) {
     /* Fill the buffer with the user login */
     login = get_login();
 
-    dbus_failed = set_lock_status(2);
+    /* Fill the buffer with the current session_id */
+    dbus_failed = get_session_id(&session_id);
+
+    if (!dbus_failed)
+        dbus_failed = set_lock_status(session_id, 2);
 
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
@@ -1407,6 +1414,6 @@ int main(int argc, char *argv[]) {
     xcb_aux_sync(conn);
 
     if (!dbus_failed)
-        set_lock_status(1);
+        set_lock_status(session_id, 1);
     return 0;
 }
