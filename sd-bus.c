@@ -47,7 +47,7 @@ int set_lock_status(unsigned lock_status) {
     int r;
 
     /* Connect to the system bus */
-    r = sd_bus_open(&bus);
+    r = sd_bus_open_system(&bus);
     if (r < 0) {
         fprintf(stderr, "Failed to connect to system bus: %s\n", strerror(-r));
         goto finish;
