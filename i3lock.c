@@ -58,6 +58,11 @@
 #define STOP_TIMER(timer_obj) \
     timer_obj = stop_timer(timer_obj)
 
+/* Lock status */
+#define UNLOCKED 2
+#define LOCKED 3
+#define LOCKED_OVERTIME 4
+
 typedef void (*ev_callback_t)(EV_P_ ev_timer *w, int revents);
 static void input_done(void);
 
@@ -1049,11 +1054,11 @@ static void raise_loop(xcb_window_t window) {
 static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
     if (!dbus_failed)
     {
-        unsigned status = 2;
+        unsigned status = LOCKED;
         time_t curtime = time(NULL);
         time_t locked_time = difftime(curtime, lock_time) / 60;
         if (locked_time > AUTHORIZED_LOCK_TIME)
-            status = 3;
+            status = LOCKED_OVERTIME;
         dbus_failed = set_lock_status(session_id, status);
     }
 }
@@ -1352,7 +1357,7 @@ int main(int argc, char *argv[]) {
     dbus_failed = get_session_id(&session_id);
 
     if (!dbus_failed)
-        dbus_failed = set_lock_status(session_id, 2);
+        dbus_failed = set_lock_status(session_id, LOCKED);
 
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
@@ -1414,6 +1419,6 @@ int main(int argc, char *argv[]) {
     xcb_aux_sync(conn);
 
     if (!dbus_failed)
-        set_lock_status(session_id, 1);
+        set_lock_status(session_id, UNLOCKED);
     return 0;
 }
