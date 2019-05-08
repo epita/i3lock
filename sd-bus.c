@@ -109,7 +109,7 @@ int set_lock_status(const char *session_id, unsigned lock_status) {
             "org.cri.MachineState",                 /* service to contact */
             "/org/cri/MachineState",                /* object path */
             "org.cri.MachineState",                 /* interface name */
-            "Set_Lock_Status",                      /* method name */
+            "SetLockStatus",                      /* method name */
             &error,                                 /* object to return error in */
             &m,                                     /* return message on success */
             "su",                                   /* input signature */
