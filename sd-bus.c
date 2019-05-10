@@ -108,7 +108,6 @@ finish:
 }
 
 int set_lock_status(char *session_id, unsigned lock_status) {
-    printf("Session id: %s, Lock status: %u\n", session_id, lock_status);
     sd_bus_error error = SD_BUS_ERROR_NULL;
     sd_bus_message *m = NULL;
     sd_bus *bus = NULL;
