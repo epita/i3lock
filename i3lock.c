@@ -117,7 +117,8 @@ char login_buf[64];
 char *login = login_buf;
 
 /* Session Id */
-const char *session_id;
+char session_id_buf[16];
+char *session_id = session_id_buf;
 
 /* isutf, u8_dec © 2005 Jeff Bezanson, public domain */
 #define isutf(c) (((c)&0xC0) != 0x80)
@@ -1057,7 +1058,7 @@ static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
         unsigned status = LOCKED;
         time_t curtime = time(NULL);
         time_t locked_time = difftime(curtime, lock_time) / 60;
-        if (locked_time > AUTHORIZED_LOCK_TIME)
+        if (locked_time >= AUTHORIZED_LOCK_TIME)
             status = LOCKED_OVERTIME;
         dbus_failed = set_lock_status(session_id, status);
     }
@@ -1065,12 +1066,12 @@ static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
 
 void start_time_status_tick(struct ev_loop* main_loop) {
     if (time_status_tick) {
-        ev_periodic_set(time_status_tick, 1.0, 30., 0);
+        ev_periodic_set(time_status_tick, 1.0, 15., 0);
         ev_periodic_again(main_loop, time_status_tick);
     } else {
         if (!(time_status_tick = calloc(sizeof(struct ev_periodic), 1)))
             return;
-        ev_periodic_init(time_status_tick, time_status_cb, 1.0, 60., 0);
+        ev_periodic_init(time_status_tick, time_status_cb, 1.0, 15., 0);
         ev_periodic_start(main_loop, time_status_tick);
     }
 }
@@ -1354,7 +1355,7 @@ int main(int argc, char *argv[]) {
     login = get_login();
 
     /* Fill the buffer with the current session_id */
-    dbus_failed = get_session_id(&session_id);
+    dbus_failed = get_session_id(session_id);
 
     if (!dbus_failed)
         dbus_failed = set_lock_status(session_id, LOCKED);

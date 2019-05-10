@@ -40,12 +40,13 @@ finish:
     return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
-int get_session_id(const char **session_id)
+int get_session_id(char *session_id)
 {
     sd_bus_error error = SD_BUS_ERROR_NULL;
     sd_bus_message *m = NULL;
     sd_bus *bus = NULL;
     int r;
+    const char *id;
 
     /* Connect to the system bus */
     r = sd_bus_open_system(&bus);
@@ -71,17 +72,32 @@ int get_session_id(const char **session_id)
     }
 
     // We need to open the variant container
-    r = sd_bus_message_enter_container(m, SD_BUS_TYPE_VARIANT, *session_id);
+    char type;
+    r = sd_bus_message_peek_type(m, &type, &id);
+    if (r < 0) {
+        fprintf(stderr, "Failed to peek the type container: %s\n", strerror(-r));
+        goto finish;
+    }
+    r = sd_bus_message_enter_container(m, SD_BUS_TYPE_VARIANT, id);
     if (r < 0) {
         fprintf(stderr, "Failed to enter in the container: %s\n", strerror(-r));
         goto finish;
     }
-
-    r = sd_bus_message_read_basic(m, SD_BUS_TYPE_STRING, session_id);
+    r = sd_bus_message_read_basic(m, SD_BUS_TYPE_STRING, &id);
     if (r < 0) {
         fprintf(stderr, "Failed to parse response message: %s\n", strerror(-r));
         goto finish;
     }
+    if (id == NULL) {
+        fprintf(stderr, "Failed to get current session id: %s\n", strerror(-r));
+        goto finish;
+    }
+    size_t len_id = strlen(id);
+    if (len_id == 0) {
+        fprintf(stderr, "Failed to get current session id: %s\n", strerror(-r));
+        goto finish;
+    }
+    strcpy(session_id, id);
 
 finish:
     sd_bus_error_free(&error);
@@ -91,7 +107,8 @@ finish:
     return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
-int set_lock_status(const char *session_id, unsigned lock_status) {
+int set_lock_status(char *session_id, unsigned lock_status) {
+    printf("Session id: %s, Lock status: %u\n", session_id, lock_status);
     sd_bus_error error = SD_BUS_ERROR_NULL;
     sd_bus_message *m = NULL;
     sd_bus *bus = NULL;

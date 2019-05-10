@@ -3,8 +3,8 @@
 
 int terminate_current_session(void);
 
-int get_session_id(const char **session_id);
+int get_session_id(char *session_id);
 
-int set_lock_status(const char *session_id, unsigned lock_status);
+int set_lock_status(char *session_id, unsigned lock_status);
 
 #endif
