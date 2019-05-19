@@ -1052,7 +1052,7 @@ static void raise_loop(xcb_window_t window) {
     }
 }
 
-static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
+void identify_and_set_lock_status(void) {
     if (!dbus_failed)
     {
         unsigned status = LOCKED;
@@ -1062,6 +1062,10 @@ static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
             status = LOCKED_OVERTIME;
         dbus_failed = set_lock_status(session_id, status);
     }
+}
+
+static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
+    identify_and_set_lock_status();
 }
 
 void start_time_status_tick(struct ev_loop* main_loop) {
@@ -1358,7 +1362,7 @@ int main(int argc, char *argv[]) {
     dbus_failed = get_session_id(session_id);
 
     if (!dbus_failed)
-        dbus_failed = set_lock_status(session_id, LOCKED);
+        identify_and_set_lock_status();
 
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
