@@ -58,11 +58,6 @@
 #define STOP_TIMER(timer_obj) \
     timer_obj = stop_timer(timer_obj)
 
-/* Lock status */
-#define UNLOCKED 2
-#define LOCKED 3
-#define LOCKED_OVERTIME 4
-
 typedef void (*ev_callback_t)(EV_P_ ev_timer *w, int revents);
 static void input_done(void);
 
@@ -1055,12 +1050,12 @@ static void raise_loop(xcb_window_t window) {
 void identify_and_set_lock_status(void) {
     if (!dbus_failed)
     {
-        unsigned status = LOCKED;
+        enum status new_status = LOCKED;
         time_t curtime = time(NULL);
         time_t locked_time = difftime(curtime, lock_time) / 60;
         if (locked_time >= AUTHORIZED_LOCK_TIME)
-            status = LOCKED_OVERTIME;
-        dbus_failed = set_lock_status(session_id, status);
+            new_status = LOCKED_OVERTIME;
+        dbus_failed = set_lock_status(session_id, new_status);
     }
 }
 

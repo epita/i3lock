@@ -107,7 +107,7 @@ finish:
     return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
-int set_lock_status(char *session_id, unsigned lock_status) {
+static int set_lock_status_dbus(char *session_id, const char *method_name) {
     sd_bus_error error = SD_BUS_ERROR_NULL;
     sd_bus_message *m = NULL;
     sd_bus *bus = NULL;
@@ -125,12 +125,12 @@ int set_lock_status(char *session_id, unsigned lock_status) {
             "org.cri.MachineState",                 /* service to contact */
             "/org/cri/MachineState",                /* object path */
             "org.cri.MachineState",                 /* interface name */
-            "SetLockStatus",                      /* method name */
+            method_name,                          /* method name */
             &error,                                 /* object to return error in */
             &m,                                     /* return message on success */
-            "su",                                   /* input signature */
-            session_id,                             /* first argument */
-            lock_status);                           /* second argument */
+            "s",                                    /* input signature */
+            session_id                              /* first argument */
+            );
     if (r < 0) {
         fprintf(stderr, "Failed to issue method call: %s\n", error.message);
     }
@@ -141,4 +141,19 @@ finish:
     sd_bus_unref(bus);
 
     return r < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
+int set_lock_status(char *session_id, enum status new_status) {
+    const char *status[STATUS_SIZE] =
+    {
+        "UnlockSession",
+        "LockSession",
+        "OvertimeLockSession"
+    };
+    if (new_status < UNLOCKED || new_status > LOCKED_OVERTIME)
+    {
+        printf("Wrong status.\n");
+        return 0;
+    }
+    return set_lock_status_dbus(session_id, status[new_status]);
 }
