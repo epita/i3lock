@@ -1,9 +1,9 @@
 # Maintainer: Sevan Murriguian--Watrin <sevan@cri.epita.fr>
 
-pkgname=i3lock-epita
-pkgver=2.11.1.epita.3
+pkgname=i3lock-cri
+pkgver=2.11.1.cri
 pkgrel=3
-pkgdesc="An improved screenlocker based upon XCB and PAM - epita's version"
+pkgdesc="An improved screenlocker based upon XCB and PAM - cri's version"
 arch=('i686' 'x86_64')
 url="https://github.com/epita/i3lock/"
 license=('MIT')
