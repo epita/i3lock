@@ -1140,7 +1140,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case 'u':
-                unlock_indicator = false;
+                errx(EXIT_FAILURE, "Unlock indicator cannot be disabled on the PIE");
                 break;
             case 'i':
                 image_path = strdup(optarg);
