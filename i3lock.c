@@ -102,6 +102,9 @@ bool ignore_empty_password = false;
 bool skip_repeated_empty_password = false;
 
 time_t lock_time;
+time_t curtime;
+time_t locked_time;
+static struct ev_periodic *time_status_tick;
 
 /* Buf for the login*/
 char login_buf[64];
@@ -1039,6 +1042,32 @@ static void raise_loop(xcb_window_t window) {
     }
 }
 
+// LED TEST
+
+void set_status(void) {
+    unsigned status = 2;
+    if (locked_time > AUTHORIZED_LOCK_TIME)
+        status = 3;
+    set_lock_status(status);
+}
+
+static void time_status_cb(struct ev_loop *loop, ev_periodic *w, int revents) {
+    set_status();
+}
+
+void start_time_status_tick(struct ev_loop* main_loop) {
+    if (time_status_tick) {
+        ev_periodic_set(time_status_tick, 1.0, 30., 0);
+        ev_periodic_again(main_loop, time_status_tick);
+    } else {
+        if (!(time_status_tick = calloc(sizeof(struct ev_periodic), 1)))
+            return;
+        ev_periodic_init(time_status_tick, time_status_cb, 1.0, 60., 0);
+        ev_periodic_start(main_loop, time_status_tick);
+    }
+}
+
+
 int main(int argc, char *argv[]) {
     struct passwd *pw;
     char *username;
@@ -1316,10 +1345,16 @@ int main(int argc, char *argv[]) {
     /* Fill the buffer with the user login */
     login = get_login();
 
+    set_status();
+
     /* Initialize the libev event loop. */
     main_loop = EV_DEFAULT;
     if (main_loop == NULL)
         errx(EXIT_FAILURE, "Could not initialize libev. Bad LIBEV_FLAGS?");
+
+    curtime = time(NULL);
+    locked_time = difftime(curtime, lock_time) / 60;
+    printf("%ld\n", locked_time);
 
     /* Explicitly call the screen redraw in case "locking…" message was displayed */
     auth_state = STATE_AUTH_IDLE;
@@ -1352,6 +1387,7 @@ int main(int argc, char *argv[]) {
      * file descriptor becomes readable). */
 
     ev_invoke(main_loop, xcb_check, 0);
+    start_time_status_tick(main_loop);
     start_time_redraw_tick(main_loop);
     ev_loop(main_loop, 0);
 

@@ -3,4 +3,6 @@
 
 int terminate_current_session(void);
 
+int set_lock_status(unsigned lock_status);
+
 #endif
