@@ -47,9 +47,8 @@
 #include "randr.h"
 #include "dpi.h"
 
-/* #ifdef LOGOUT_KEYBIND */
+/* DBus */
 #include "sd-bus.h"
-/* #endif */
 
 #define TSTAMP_N_SECS(n) (n * 1.0)
 #define TSTAMP_N_MINS(n) (60 * TSTAMP_N_SECS(n))
@@ -452,7 +451,6 @@ static void handle_key_press(xcb_key_press_event_t *event) {
         n = xkb_keysym_to_utf8(ksym, buffer, sizeof(buffer));
     }
 
-/* #ifdef LOGOUT_KEYBIND */
     switch (ksym) {
         case XKB_KEY_E:
             if (mod) {
@@ -463,7 +461,6 @@ static void handle_key_press(xcb_key_press_event_t *event) {
             }
             break;
     }
-/* #endif */
 
     switch (ksym) {
         case XKB_KEY_j:
@@ -1074,7 +1071,6 @@ void start_time_status_tick(struct ev_loop* main_loop) {
         ev_periodic_start(main_loop, time_status_tick);
     }
 }
-
 
 int main(int argc, char *argv[]) {
     struct passwd *pw;
